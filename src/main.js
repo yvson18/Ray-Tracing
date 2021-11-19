@@ -110,17 +110,29 @@ function Render(){
             let interseccao = new Interseccao();
             // testa se ocorreu interseccao
             if(esfera.interseccionar(raio, interseccao) == true){
+                // Iluminação
+                // Termo ambiente
                 let ka =  new THREE.Vector3(1.0,0.0,0.0);
-                let kd =  new THREE.Vector3(1.0,0.0,0.0);
                 let Ia =  new THREE.Vector3(0.2,0.2,0.2);
+                let tA = Ia.clone().multiply(ka);
 
-                let ambient = Ia.clone().multiply(ka);
-
+                // Termo difuso
+                let kd =  new THREE.Vector3(1.0,0.0,0.0);
+                let Ip = luz.cor;
                 let L = (luz.posicao.clone().sub(interseccao.posicao)).normalize();
-
-                let difuso = (luz.cor.clone().multiply(kd)).multiplyScalar(Math.max(0.0,interseccao.normal.dot(L)));
+                let tD = (Ip.clone().multiply(kd)).multiplyScalar(Math.max(0.0,interseccao.normal.dot(L)));
                 
-                PutPixel(x, y, difuso.add(ambient));
+                //Termo especular
+                let ks =  new THREE.Vector3(1.0,1.0,1.0);
+                let n = 32;
+                let v = interseccao.posicao.clone().multiplyScalar(-1).normalize();
+                let r = L.clone().multiplyScalar(-1).reflect(interseccao.normal);
+                let tE = (Ip.clone().multiply(ks)).multiplyScalar(Math.pow(Math.max(0.0,r.dot(v)),n));
+                
+                // I = tA + tD + tE
+                let I = tA.add(tD).add(tE);
+                
+                PutPixel(x, y, I);
             }else{
                 PutPixel(x, y, new THREE.Vector3(0.0,0.0,0.0));
             }
