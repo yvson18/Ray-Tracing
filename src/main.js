@@ -90,6 +90,48 @@ class Esfera{
     }    
 }
 
+function areaTriangulo(p1 ,p2, p3){
+    return ((p2.clone().sub(p1)).cross((p3.clone().sub(p1)))).length() * 0.5;
+}
+
+
+class Triangulo{
+    constructor(A, B, C){
+        this.A = A;
+        this.B = B;
+        this.C = C;
+    }
+
+    interseccionar(raio, interseccao){
+        //Etapa 1: Ver se o raio incide no plano
+        // vetor normal ao plano normalizado 
+        let orto_plano = ((this.C.clone().sub(this.A)).cross(this.B.clone().sub(this.A))).normalize();
+        
+        let t_denominador = raio.direcao.clone().dot(orto_plano);
+        if(t_denominador === 0){ // raio paralelo ao plano
+            console.log("entrei1");
+            return false;
+        } 
+
+        let t = (this.A.clone().dot(orto_plano) - raio.origem.clone().dot(orto_plano)) / t_denominador;
+        interseccao.t = t;
+        interseccao.posicao = raio.origem.clone().add(raio.direcao.clone().multiplyScalar(interseccao.t));
+        
+        //Etapa 2: Verifica se a intersecção está dentro do triangulo
+        
+        if((areaTriangulo(this.A,this.B, interseccao.posicao) + areaTriangulo(this.A, this.C, interseccao.posicao) 
+            + areaTriangulo(this.B, this.C, interseccao.posicao)) === areaTriangulo(this.A, this.B, this.C)){
+            interseccao.normal = orto_plano;
+            return true;
+        }else{
+            console.log("entrei2");
+            return false;
+        }
+              
+    }
+}
+
+
 class Luz {
     constructor(posicao, cor){
         this.posicao = posicao;
@@ -102,14 +144,15 @@ function Render(){
     let camera = new Camera();
     let esfera = new Esfera(new THREE.Vector3(0.0,0.0,-3.0),1.0);
     let luz  = new Luz(new THREE.Vector3(-10.0,10.0,4.0),new THREE.Vector3(1.0,1.0,1.0));
+    let triangulo = new Triangulo(new THREE.Vector3(-1.0,-1.0,-3.5),new THREE.Vector3(1.0,1.0,-3.0),new THREE.Vector3(0.75,-1.0,-2.5));
 
+    
     for(let y = 0; y < 512; y++){
         for(let x = 0; x < 512; x++){
-
+           
             let raio = camera.raio(x,y);
             let interseccao = new Interseccao();
-            // testa se ocorreu interseccao
-            if(esfera.interseccionar(raio, interseccao) == true){
+            if (triangulo.interseccionar(raio, interseccao) === true){
                 // Iluminação
                 // Termo ambiente
                 let ka =  new THREE.Vector3(1.0,0.0,0.0);
@@ -131,8 +174,8 @@ function Render(){
                 
                 // I = tA + tD + tE
                 let I = tA.add(tD).add(tE);
-                
                 PutPixel(x, y, I);
+
             }else{
                 PutPixel(x, y, new THREE.Vector3(0.0,0.0,0.0));
             }
