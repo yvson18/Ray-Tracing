@@ -90,10 +90,6 @@ class Esfera{
     }    
 }
 
-function areaTriangulo(p1 ,p2, p3){
-    return ((p2.clone().sub(p1)).cross((p3.clone().sub(p1)))).length() * 0.5;
-}
-
 
 class Triangulo{
     constructor(A, B, C){
@@ -107,6 +103,7 @@ class Triangulo{
         let orto_plano = ((this.C.clone().sub(this.A)).cross(this.B.clone().sub(this.A))).normalize();
         
         let t_denominador = raio.direcao.clone().dot(orto_plano);
+        
         if(t_denominador === 0){ // raio paralelo ao plano
            return false;
         } 
@@ -124,7 +121,7 @@ class Triangulo{
         
         let AI = interseccao.posicao.clone().sub(this.A);
 
-        let a = 1 - (AI.clone().dot(v1) / AB.clone().dot(v1));
+        let a = 1 - (AI.clone().dot(v1) / AB.clone().dot(v1)); // coordenada baricêntrica referente a o ponto A
         
         //achando o coeficiente b
         let BC = this.C.clone().sub(this.B);
@@ -134,9 +131,9 @@ class Triangulo{
 
         let BI = interseccao.posicao.clone().sub(this.B);
 
-        let b = 1 - (BI.clone().dot(v2) / BC.clone().dot(v2));
+        let b = 1 - (BI.clone().dot(v2) / BC.clone().dot(v2)); // coordenada baricêntrica referente a o ponto B
 
-
+        // condição para o ponto estar dentro do triângulo
         if((a >= 0) && (b >= 0) && ((a+b) <= 1)){
             interseccao.normal = orto_plano;
             return true;
@@ -155,19 +152,23 @@ class Luz {
     }
 }
 
+
 function Render(){
     let camera = new Camera();
-    let esfera = new Esfera(new THREE.Vector3(0.0,0.0,-3.0),1.0);
     let luz  = new Luz(new THREE.Vector3(-10.0,10.0,4.0),new THREE.Vector3(1.0,1.0,1.0));
-    let triangulo = new Triangulo(new THREE.Vector3(-1.0,-1.0,-3.5),new THREE.Vector3(1.0,1.0,-3.0),new THREE.Vector3(0.75,-1.0,-2.5));
 
-    
+    let esfera = new Esfera(new THREE.Vector3(-1.0,1.0,-3.0),0.5);
+    let triangulo = new Triangulo( new THREE.Vector3(-1.0,-1.0,-3.5),
+                                    new THREE.Vector3(1.0,1.0,-3.0),
+                                    new THREE.Vector3(0.75,-1.0,-2.5));
+
     for(let y = 0; y < 512; y++){
         for(let x = 0; x < 512; x++){
            
             let raio = camera.raio(x,y);
             let interseccao = new Interseccao();
-            if (triangulo.interseccionar(raio, interseccao) === true){
+            
+            if (esfera.interseccionar(raio, interseccao) === true){
                 // Iluminação
                 // Termo ambiente
                 let ka =  new THREE.Vector3(1.0,0.0,0.0);
@@ -191,11 +192,134 @@ function Render(){
                 let I = tA.add(tD).add(tE);
                 PutPixel(x, y, I);
 
-            }else{
-                PutPixel(x, y, new THREE.Vector3(0.0,0.0,0.0));
+            }
+
+        }
+    }
+}
+
+function RenderUmbrella(triangulos){
+    let camera = new Camera();
+    let luz  = new Luz(new THREE.Vector3(-10.0,10.0,4.0),new THREE.Vector3(1.0,1.0,1.0));
+    
+    for(let y = 0; y < 512; y++){
+        for(let x = 0; x < 512; x++){
+           
+            let raio = camera.raio(x,y);
+
+            for(let i  = 0; i < triangulos.length; i++){
+                let interseccao = new Interseccao();
+
+                if(triangulos[i].triangulo.interseccionar(raio, interseccao) === true){
+                    // Iluminação
+                    // Termo ambiente
+                    let ka =  triangulos[i].cor;
+                    let Ia =  new THREE.Vector3(0.2,0.2,0.2);
+                    let tA = Ia.clone().multiply(ka);
+
+                    // Termo difuso
+                    let kd =  triangulos[i].cor;
+                    let Ip = luz.cor;
+                    let L = (luz.posicao.clone().sub(interseccao.posicao)).normalize();
+                    let tD = (Ip.clone().multiply(kd)).multiplyScalar(Math.max(0.0,interseccao.normal.dot(L)));
+
+                    //Termo especular
+                    let ks =  new THREE.Vector3(1.0,1.0,1.0);
+                    let n = 32;
+                    let v = interseccao.posicao.clone().multiplyScalar(-1).normalize();
+                    let r = L.clone().multiplyScalar(-1).reflect(interseccao.normal);
+                    let tE = (Ip.clone().multiply(ks)).multiplyScalar(Math.pow(Math.max(0.0,r.dot(v)),n));
+
+                    // I = tA + tD + tE
+                    let I = tA.add(tD).add(tE);
+                    PutPixel(x, y, I);
+
+                }
             }
         }
     }
 }
 
-Render();
+
+// new THREE.Vector3(0.43,-0.6,-2.98)
+
+
+
+let triangulos = [
+    //1
+    {
+        triangulo: new Triangulo(new THREE.Vector3(0.7,-0.3,-2.85), // M
+                                 new THREE.Vector3(0.95,1.42,-3.16), // K
+                                 new THREE.Vector3(1.79,0.8,-2.52)), // D
+
+        cor: new THREE.Vector3(1.0,0.0,0.0) // Azul
+    
+    },
+    //2
+    {
+        triangulo: new Triangulo(new THREE.Vector3(0.7,-0.3,-2.85), // M
+                                 new THREE.Vector3(1.79,0.8,-2.52), // D
+                                 new THREE.Vector3(1.8,-0.17,-2.24)), // E
+
+        cor: new THREE.Vector3(0.75,0.75,0.75) // Azul
+    
+    },
+    //3
+    {
+        triangulo: new Triangulo(new THREE.Vector3(0.7,-0.3,-2.85), // M
+                                 new THREE.Vector3(1.8,-0.17,-2.24), // E
+                                 new THREE.Vector3(1.19,-1.2,-2.17)), // F
+
+        cor: new THREE.Vector3(1.0,0.0,0.0) // Azul
+    
+    },
+    //4
+    {
+        triangulo: new Triangulo(new THREE.Vector3(0.7,-0.3,-2.85), // M
+                                 new THREE.Vector3(1.19,-1.2,-2.17), // F
+                                 new THREE.Vector3(0.06,-1.6,-2.82)), // G
+
+        cor: new THREE.Vector3(0.75,0.75,0.75) // Azul
+    
+    },
+    //5
+    {
+        triangulo: new Triangulo(new THREE.Vector3(0.7,-0.3,-2.85), // M
+                                 new THREE.Vector3(0.06,-1.6,-2.82), // G
+                                 new THREE.Vector3(-1.0,-0.75,-3.46)), // H
+
+        cor: new THREE.Vector3(1.0,0.0,0.0) // Azul
+    
+    },
+    //6
+    {
+        triangulo: new Triangulo(new THREE.Vector3(0.7,-0.3,-2.85), // M
+                                 new THREE.Vector3(-1.0,-0.75,-3.46), // H
+                                 new THREE.Vector3(-1,0.4,-3.87)), // I
+
+        cor: new THREE.Vector3(0.75,0.75,0.75) // Azul
+    
+    },
+    //7
+    {
+        triangulo: new Triangulo(new THREE.Vector3(0.7,-0.3,-2.85), // M
+                                 new THREE.Vector3(-1,0.4,-3.87), // I
+                                 new THREE.Vector3(0,1.37,-3.69)), // J
+
+        cor: new THREE.Vector3(1.0,0.0,0.0) // Azul
+    
+    },
+    //8
+    {
+        triangulo: new Triangulo(new THREE.Vector3(0.7,-0.3,-2.85), // M
+                                 new THREE.Vector3(0,1.37,-3.69), // J
+                                 new THREE.Vector3(0.95,1.42,-3.16)), // J
+
+        cor: new THREE.Vector3(0.75,0.75,0.75) // Azul
+    
+    },
+
+];
+
+//Render();
+RenderUmbrella(triangulos)
