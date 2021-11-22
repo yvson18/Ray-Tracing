@@ -101,7 +101,6 @@ class Triangulo{
         this.B = B;
         this.C = C;
     }
-
     interseccionar(raio, interseccao){
         //Etapa 1: Ver se o raio incide no plano
         // vetor normal ao plano normalizado 
@@ -109,25 +108,41 @@ class Triangulo{
         
         let t_denominador = raio.direcao.clone().dot(orto_plano);
         if(t_denominador === 0){ // raio paralelo ao plano
-            console.log("entrei1");
-            return false;
+           return false;
         } 
 
         let t = (this.A.clone().dot(orto_plano) - raio.origem.clone().dot(orto_plano)) / t_denominador;
         interseccao.t = t;
         interseccao.posicao = raio.origem.clone().add(raio.direcao.clone().multiplyScalar(interseccao.t));
         
-        //Etapa 2: Verifica se a intersecção está dentro do triangulo
+        //Etapa 2: Verifica se a intersecção está dentro do triangulo (usando coordenadas baricêntricas)
+        // Achando coeficiente a
+        let AB = this.B.clone().sub(this.A);
+        let CB = this.B.clone().sub(this.C);
+
+        let v1 = AB.clone().sub(AB.clone().projectOnVector(CB));
         
-        if((areaTriangulo(this.A,this.B, interseccao.posicao) + areaTriangulo(this.A, this.C, interseccao.posicao) 
-            + areaTriangulo(this.B, this.C, interseccao.posicao)) === areaTriangulo(this.A, this.B, this.C)){
+        let AI = interseccao.posicao.clone().sub(this.A);
+
+        let a = 1 - (AI.clone().dot(v1) / AB.clone().dot(v1));
+        
+        //achando o coeficiente b
+        let BC = this.C.clone().sub(this.B);
+        let AC = this.C.clone().sub(this.A);
+        
+        let v2 = BC.clone().sub(BC.clone().projectOnVector(AC));
+
+        let BI = interseccao.posicao.clone().sub(this.B);
+
+        let b = 1 - (BI.clone().dot(v2) / BC.clone().dot(v2));
+
+
+        if((a >= 0) && (b >= 0) && ((a+b) <= 1)){
             interseccao.normal = orto_plano;
             return true;
-        }else{
-            console.log("entrei2");
-            return false;
         }
-              
+    
+        return false;
     }
 }
 
