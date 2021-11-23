@@ -153,11 +153,52 @@ class Luz {
 }
 
 
-function Render(){
+function Render_esfera(){
     let camera = new Camera();
-    let luz  = new Luz(new THREE.Vector3(-10.0,10.0,4.0),new THREE.Vector3(1.0,1.0,1.0));
+    let luz  = new Luz(new THREE.Vector3(-10.0,10.0,4.0),new THREE.Vector3(0.8,0.8,0.8));
 
-    let esfera = new Esfera(new THREE.Vector3(-1.0,1.0,-3.0),0.5);
+    let esfera = new Esfera(new THREE.Vector3(-0.0,0.0,-3.0),1.0);
+    
+    for(let y = 0; y < 512; y++){
+        for(let x = 0; x < 512; x++){
+           
+            let raio = camera.raio(x,y);
+            let interseccao = new Interseccao();
+            
+            if (esfera.interseccionar(raio, interseccao) === true){
+                // Iluminação
+                // Termo ambiente
+                let ka =  new THREE.Vector3(1.0,0.0,0.0);
+                let Ia =  new THREE.Vector3(0.2,0.2,0.2);
+                let tA = Ia.clone().multiply(ka);
+
+                // Termo difuso
+                let kd =  new THREE.Vector3(1.0,0.0,0.0);
+                let Ip = luz.cor;
+                let L = (luz.posicao.clone().sub(interseccao.posicao)).normalize();
+                let tD = (Ip.clone().multiply(kd)).multiplyScalar(Math.max(0.0,interseccao.normal.dot(L)));
+                
+                //Termo especular
+                let ks =  new THREE.Vector3(1.0,1.0,1.0);
+                let n = 32;
+                let v = interseccao.posicao.clone().multiplyScalar(-1).normalize();
+                let r = L.clone().multiplyScalar(-1).reflect(interseccao.normal);
+                let tE = (Ip.clone().multiply(ks)).multiplyScalar(Math.pow(Math.max(0.0,r.dot(v)),n));
+                
+                // I = tA + tD + tE
+                let I = tA.add(tD).add(tE);
+                PutPixel(x, y, I);
+
+            }
+
+        }
+    }
+}
+
+function Render_triangulo(){
+    let camera = new Camera();
+    let luz  = new Luz(new THREE.Vector3(-10.0,10.0,4.0),new THREE.Vector3(0.8,0.8,0.8));
+
     let triangulo = new Triangulo( new THREE.Vector3(-1.0,-1.0,-3.5),
                                     new THREE.Vector3(1.0,1.0,-3.0),
                                     new THREE.Vector3(0.75,-1.0,-2.5));
@@ -168,7 +209,7 @@ function Render(){
             let raio = camera.raio(x,y);
             let interseccao = new Interseccao();
             
-            if (esfera.interseccionar(raio, interseccao) === true){
+            if (triangulo.interseccionar(raio, interseccao) === true){
                 // Iluminação
                 // Termo ambiente
                 let ka =  new THREE.Vector3(1.0,0.0,0.0);
@@ -240,10 +281,78 @@ function RenderUmbrella(triangulos){
     }
 }
 
+function Render_BB8(objetos){
+    let camera = new Camera();
+    let luz  = new Luz(new THREE.Vector3(-10.0,10.0,4.0),new THREE.Vector3(1.0,1.0,1.0));
 
-// new THREE.Vector3(0.43,-0.6,-2.98)
+    
+    
+    for(let y = 0; y < 512; y++){
+        for(let x = 0; x < 512; x++){
+           
+            let raio = camera.raio(x,y);
+            let interseccao = new Interseccao();
 
+            for(let i = 0; i < objetos.length; i++){
+                if(objetos[i].tipo === 0){ // esfera
+                    if (objetos[i].esfera.interseccionar(raio, interseccao) === true){
+                        // Iluminação
+                        // Termo ambiente
+                        let ka = objetos[i].cor;
+                        let Ia =  new THREE.Vector3(0.2,0.2,0.2);
+                        let tA = Ia.clone().multiply(ka);
+        
+                        // Termo difuso
+                        let kd = objetos[i].cor;
+                        let Ip = luz.cor;
+                        let L = (luz.posicao.clone().sub(interseccao.posicao)).normalize();
+                        let tD = (Ip.clone().multiply(kd)).multiplyScalar(Math.max(0.0,interseccao.normal.dot(L)));
+                        
+                        //Termo especular
+                        let ks =  new THREE.Vector3(1.0,1.0,1.0);
+                        let n = 32;
+                        let v = interseccao.posicao.clone().multiplyScalar(-1).normalize();
+                        let r = L.clone().multiplyScalar(-1).reflect(interseccao.normal);
+                        let tE = (Ip.clone().multiply(ks)).multiplyScalar(Math.pow(Math.max(0.0,r.dot(v)),n));
+                        
+                        // I = tA + tD + tE
+                        let I = tA.add(tD).add(tE);
+                        PutPixel(x, y, I);
+        
+                    }
+                }
 
+                if(objetos[i].tipo === 1){ // triangulo
+                    if (objetos[i].triangulo.interseccionar(raio, interseccao) === true){
+                        // Iluminação
+                        // Termo ambiente
+                        let ka = objetos[i].cor;
+                        let Ia =  new THREE.Vector3(1,1,1);
+                        let tA = Ia.clone().multiply(ka);
+        
+                        // Termo difuso
+                        // let kd = objetos[i].cor;
+                        // let Ip = luz.cor;
+                        // let L = (luz.posicao.clone().sub(interseccao.posicao)).normalize();
+                        // let tD = (Ip.clone().multiply(kd)).multiplyScalar(Math.max(0.0,interseccao.normal.dot(L)));
+                        
+                        // //Termo especular
+                        // let ks =  new THREE.Vector3(1.0,1.0,1.0);
+                        // let n = 32;
+                        // let v = interseccao.posicao.clone().multiplyScalar(-1).normalize();
+                        // let r = L.clone().multiplyScalar(-1).reflect(interseccao.normal);
+                        // let tE = (Ip.clone().multiply(ks)).multiplyScalar(Math.pow(Math.max(0.0,r.dot(v)),n));
+                        
+                        // I = tA + tD + tE
+                        let I = tA;
+                        PutPixel(x, y, I);
+        
+                    }
+                }
+            }
+        }
+    }
+} 
 
 let triangulos = [
     //1
@@ -321,5 +430,101 @@ let triangulos = [
 
 ];
 
-//Render();
-RenderUmbrella(triangulos)
+
+let bb8 = [
+    
+    {
+        tipo: 0,
+        esfera: new Esfera(new THREE.Vector3(0.0,-1.0,-3.0),1.0),
+        cor: new THREE.Vector3(0.75,0.75,0.75) // branco
+    },
+    {
+        tipo: 1,
+        triangulo: new Triangulo(new THREE.Vector3(0.35,-1.0,-2.0), // A
+                                 new THREE.Vector3(0.35,-0.2,-2.0), // B
+                                 new THREE.Vector3(0.69,-0.95,-2.0)), // C
+
+        cor: new THREE.Vector3(1.0,0.3,0.0) // Azul
+    
+    },
+    {
+        tipo: 1,
+        triangulo: new Triangulo(new THREE.Vector3(-0.35,-1.0,-2.0), // A
+                                 new THREE.Vector3(-0.35,-0.2,-2.0), // B
+                                 new THREE.Vector3(-0.69,-0.95,-2.0)), // C
+
+        cor: new THREE.Vector3(1.0,0.3,0.0) // Azul
+    
+    },
+
+    {
+        tipo: 1,
+        triangulo: new Triangulo(new THREE.Vector3(-0.0,-0.5,-1.0), // A
+                                 new THREE.Vector3(0.53,-1.27,-2.0), // B
+                                 new THREE.Vector3(-0.53,-1.27,-2.0)), // C
+
+        cor: new THREE.Vector3(1.0,0.3,0.0) // Azul
+    
+    },
+
+    
+
+    {
+        tipo: 0,
+        esfera: new Esfera(new THREE.Vector3(0.0,-0.0,-3.0),0.75),
+        cor: new THREE.Vector3(0.75,0.75,0.75) // branco
+    },
+
+    {
+        tipo: 1,
+        triangulo: new Triangulo(new THREE.Vector3(-0.085,0.17,-1.0), // A
+                                 new THREE.Vector3(-0.1,0.49,-2.0), // B
+                                 new THREE.Vector3(-0.32,0.39,-2.0)), // C
+
+        cor: new THREE.Vector3(1.0,0.3,0.0) // Azul
+    
+    },
+    {
+        tipo: 1,
+        triangulo: new Triangulo(new THREE.Vector3(0.085,0.17,-1.0), // A
+                                 new THREE.Vector3(0.1,0.49,-2.0), // B
+                                 new THREE.Vector3(0.32,0.39,-2.0)), // C
+
+        cor: new THREE.Vector3(1.0,0.3,0.0) // Azul
+    
+    },
+
+    {
+        tipo: 1,
+        triangulo: new Triangulo(new THREE.Vector3(0.0,0.5,-1.0), // A
+                                 new THREE.Vector3(-0.04,0.6,-2.0), // B
+                                 new THREE.Vector3(0.0,0.5,-2.0)), // C
+
+        cor: new THREE.Vector3(0.3,0.3,0.3) // Azul
+    
+    },
+    {
+        tipo: 0,
+        esfera: new Esfera(new THREE.Vector3(0.0,0.1,-2.0),0.15),
+        cor: new THREE.Vector3(0.3,0.3,0.3) // branco
+    },
+
+    
+
+    {
+        tipo: 0,
+        esfera: new Esfera(new THREE.Vector3(0.22,-0.115,-2.0),0.08),
+        cor: new THREE.Vector3(0.25,0.25,0.25) // branco
+    },
+
+    
+
+
+   
+];
+
+
+//Render_esfera();
+//Render_triangulo();
+//RenderUmbrella(triangulos)
+Render_BB8(bb8);
