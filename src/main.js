@@ -181,8 +181,8 @@ function Render_esfera(){
                 //Termo especular
                 let ks =  new THREE.Vector3(1.0,1.0,1.0);
                 let n = 32;
-                let v = interseccao.posicao.clone().multiplyScalar(-1).normalize();
-                let r = L.clone().multiplyScalar(-1).reflect(interseccao.normal);
+                let v = interseccao.posicao.clone().sub(raio.origem).normalize();
+                let r = L.clone().multiplyScalar(1).reflect(interseccao.normal);
                 let tE = (Ip.clone().multiply(ks)).multiplyScalar(Math.pow(Math.max(0.0,r.dot(v)),n));
                 
                 // I = tA + tD + tE
@@ -241,7 +241,7 @@ function Render_triangulo(){
 
 function RenderUmbrella(triangulos){
     let camera = new Camera();
-    let luz  = new Luz(new THREE.Vector3(-10.0,10.0,4.0),new THREE.Vector3(1.0,1.0,1.0));
+    let luz  = new Luz(new THREE.Vector3(-6.0,5.0,4.0),new THREE.Vector3(1.0,1.0,1.0));
     
     for(let y = 0; y < 512; y++){
         for(let x = 0; x < 512; x++){
@@ -266,7 +266,7 @@ function RenderUmbrella(triangulos){
 
                     //Termo especular
                     let ks =  new THREE.Vector3(1.0,1.0,1.0);
-                    let n = 32;
+                    let n = 28;
                     let v = interseccao.posicao.clone().multiplyScalar(-1).normalize();
                     let r = L.clone().multiplyScalar(-1).reflect(interseccao.normal);
                     let tE = (Ip.clone().multiply(ks)).multiplyScalar(Math.pow(Math.max(0.0,r.dot(v)),n));
@@ -283,7 +283,7 @@ function RenderUmbrella(triangulos){
 
 function Render_BB8(objetos){
     let camera = new Camera();
-    let luz  = new Luz(new THREE.Vector3(-10.0,10.0,4.0),new THREE.Vector3(1.0,1.0,1.0));
+    let luz  = new Luz(new THREE.Vector3(-10.0,10.0,4.0),new THREE.Vector3(1,0.8,0.1));
 
     
     
@@ -310,7 +310,7 @@ function Render_BB8(objetos){
                         
                         //Termo especular
                         let ks =  new THREE.Vector3(1.0,1.0,1.0);
-                        let n = 32;
+                        let n = 64;
                         let v = interseccao.posicao.clone().multiplyScalar(-1).normalize();
                         let r = L.clone().multiplyScalar(-1).reflect(interseccao.normal);
                         let tE = (Ip.clone().multiply(ks)).multiplyScalar(Math.pow(Math.max(0.0,r.dot(v)),n));
@@ -481,7 +481,7 @@ let bb8 = [
                                  new THREE.Vector3(-0.1,0.49,-2.0), // B
                                  new THREE.Vector3(-0.32,0.39,-2.0)), // C
 
-        cor: new THREE.Vector3(1.0,0.3,0.0) // Azul
+        cor: new THREE.Vector3(1.0,0.3,0.0) // laranja
     
     },
     {
@@ -490,7 +490,7 @@ let bb8 = [
                                  new THREE.Vector3(0.1,0.49,-2.0), // B
                                  new THREE.Vector3(0.32,0.39,-2.0)), // C
 
-        cor: new THREE.Vector3(1.0,0.3,0.0) // Azul
+        cor: new THREE.Vector3(1.0,0.3,0.0) // laranja
     
     },
 
@@ -500,13 +500,13 @@ let bb8 = [
                                  new THREE.Vector3(-0.04,0.6,-2.0), // B
                                  new THREE.Vector3(0.0,0.5,-2.0)), // C
 
-        cor: new THREE.Vector3(0.3,0.3,0.3) // Azul
+        cor: new THREE.Vector3(0.3,0.3,0.3) // cinza escuro
     
     },
     {
         tipo: 0,
         esfera: new Esfera(new THREE.Vector3(0.0,0.1,-2.0),0.15),
-        cor: new THREE.Vector3(0.3,0.3,0.3) // branco
+        cor: new THREE.Vector3(0.3,0.3,0.3) // cinza escuro
     },
 
     
