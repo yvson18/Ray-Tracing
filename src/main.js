@@ -143,6 +143,46 @@ class Triangulo{
     }
 }
 
+class TrianguloEficiente{
+    constructor(A, B, C){
+        this.A = A;
+        this.B = B;
+        this.C = C;
+    }
+    interseccionar(raio, interseccao){
+        let e = 0.0000001;
+        let AB = this.B.clone().sub(this.A);
+        let AC = this.C.clone().sub(this.A);
+        let h = raio.direcao.cross(AC);
+        let det = AB.dot(h);
+        if (det < e && det > -e){
+            console.log(det);
+            return false;
+        }
+        let invDet = 1.0/det;
+        let s = raio.origem.sub(this.A);
+        let u = s.dot(h) * invDet;
+        if(u < 0.0 || u > 1.0){
+            return false;
+        }
+        let q = s.cross(AB);
+        let v = raio.direcao.dot(q) * invDet;
+        // if(v < 0.0 || u + v > 1.0){
+        //     return false;
+        // }
+        console.log('chegou')
+        let t = invDet * AC.dot(q);
+        interseccao.t = t;
+
+        if(t > e){
+            interseccao.posicao = raio.origem.clone().add(raio.direcao.clone().multiplyScalar(interseccao.t));
+            interseccao.normal = AB.cross(AC).normalize();
+            return true;
+        }else{
+            return false;
+        }
+    }
+}
 
 class Luz {
     constructor(posicao, cor){
@@ -202,6 +242,50 @@ function Render_triangulo(){
     let triangulo = new Triangulo( new THREE.Vector3(-1.0,-1.0,-3.5),
                                     new THREE.Vector3(1.0,1.0,-3.0),
                                     new THREE.Vector3(0.75,-1.0,-2.5));
+
+    for(let y = 0; y < 512; y++){
+        for(let x = 0; x < 512; x++){
+           
+            let raio = camera.raio(x,y);
+            let interseccao = new Interseccao();
+            
+            if (triangulo.interseccionar(raio, interseccao) === true){
+                // Iluminação
+                // Termo ambiente
+                let ka =  new THREE.Vector3(1.0,0.0,0.0);
+                let Ia =  new THREE.Vector3(0.2,0.2,0.2);
+                let tA = Ia.clone().multiply(ka);
+
+                // Termo difuso
+                let kd =  new THREE.Vector3(1.0,0.0,0.0);
+                let Ip = luz.cor;
+                let L = (luz.posicao.clone().sub(interseccao.posicao)).normalize();
+                let tD = (Ip.clone().multiply(kd)).multiplyScalar(Math.max(0.0,interseccao.normal.dot(L)));
+                
+                //Termo especular
+                let ks =  new THREE.Vector3(1.0,1.0,1.0);
+                let n = 32;
+                let v = interseccao.posicao.clone().multiplyScalar(-1).normalize();
+                let r = L.clone().multiplyScalar(-1).reflect(interseccao.normal);
+                let tE = (Ip.clone().multiply(ks)).multiplyScalar(Math.pow(Math.max(0.0,r.dot(v)),n));
+                
+                // I = tA + tD + tE
+                let I = tA.add(tD).add(tE);
+                PutPixel(x, y, I);
+
+            }
+
+        }
+    }
+}
+
+function Render_triangulo_eficiente(){
+    let camera = new Camera();
+    let luz  = new Luz(new THREE.Vector3(-10.0,10.0,4.0),new THREE.Vector3(0.8,0.8,0.8));
+
+    let triangulo = new TrianguloEficiente( new THREE.Vector3(-1.0,-1.0,-3.5),
+                                            new THREE.Vector3(1.0,1.0,-3.0),
+                                            new THREE.Vector3(0.75,-1.0,-2.5));
 
     for(let y = 0; y < 512; y++){
         for(let x = 0; x < 512; x++){
@@ -353,6 +437,152 @@ function Render_BB8(objetos){
         }
     }
 } 
+
+function RenderCena(objetos){
+    let camera = new Camera();
+    let luz  = new Luz(new THREE.Vector3(-2.50,2.75,1.0),new THREE.Vector3(1.0,1.0,1.0));
+    
+    for(let y = 0; y < 512; y++){
+        for(let x = 0; x < 512; x++){
+           
+            let raio = camera.raio(x,y);
+            let interseccao = new Interseccao();
+
+            for(let i = 0; i < objetos.length; i++){
+
+                if(objetos[i].tipo === 1){ // triangulo
+                    if (objetos[i].triangulo.interseccionar(raio, interseccao) === true){
+                        // Iluminação
+                        // Termo ambiente
+                        let ka = objetos[i].cor;
+                        let Ia =  new THREE.Vector3(1,1,1);
+                        let tA = Ia.clone().multiply(ka);
+        
+                        // Termo difuso
+                        let kd = objetos[i].cor;
+                        let Ip = luz.cor;
+                        let L = (luz.posicao.clone().sub(interseccao.posicao)).normalize();
+                        let tD = (Ip.clone().multiply(kd)).multiplyScalar(Math.max(0.0,interseccao.normal.dot(L)));
+                        
+                        //Termo especular
+                        let ks =  new THREE.Vector3(1.0,1.0,1.0);
+                        let n = 10;
+                        let v = interseccao.posicao.clone().multiplyScalar(-1).normalize();
+                        let r = L.clone().multiplyScalar(-1).reflect(interseccao.normal);
+                        let tE = (Ip.clone().multiply(ks)).multiplyScalar(Math.pow(Math.max(0.0,r.dot(v)),n));
+                        
+                        // I = tA + tD + tE
+                        let I = tA.add(tD).add(tE);
+
+                        PutPixel(x, y, I);
+        
+                    }
+                }
+
+
+                if(objetos[i].tipo === 0){ // esfera
+                    if (objetos[i].esfera.interseccionar(raio, interseccao) === true){
+                        // Iluminação
+                        // Termo ambiente
+                        let ka = objetos[i].cor;
+                        let Ia =  new THREE.Vector3(0.2,0.2,0.2);
+                        let tA = Ia.clone().multiply(ka);
+        
+                        // Termo difuso
+                        let kd = objetos[i].cor;
+                        let Ip = luz.cor;
+                        let L = (luz.posicao.clone().sub(interseccao.posicao)).normalize();
+                        let tD = (Ip.clone().multiply(kd)).multiplyScalar(Math.max(0.0,interseccao.normal.dot(L)));
+                        
+                        //Termo especular
+                        let ks =  new THREE.Vector3(1.0,1.0,1.0);
+                        let n = 64;
+                        let v = interseccao.posicao.clone().multiplyScalar(-1).normalize();
+                        let r = L.clone().multiplyScalar(-1).reflect(interseccao.normal);
+                        let tE = (Ip.clone().multiply(ks)).multiplyScalar(Math.pow(Math.max(0.0,r.dot(v)),n));
+                        
+                        // I = tA + tD + tE
+                        let I = tA.add(tD).add(tE);
+                        PutPixel(x, y, I);
+        
+                    }
+                }
+
+                
+            }
+        }
+    }
+}
+let cena = [
+    //1
+    {
+        tipo: 0,
+        esfera: new Esfera(new THREE.Vector3(0.0,0.15,-5.0),3.0),
+        cor: new THREE.Vector3(0.5,0.5,0.5) // branco
+    },
+    {
+        tipo: 1,
+        triangulo: new Triangulo(new THREE.Vector3(0.0,0.0,-5.0), // M
+                                 new THREE.Vector3(-1.0,2.0,-5.0), // K
+                                 new THREE.Vector3(1.0,2.0,-5.0)), // D
+
+        cor: new THREE.Vector3(1.0,0.0,0.0) // Vermelho
+    
+    },
+    //2
+    {
+        tipo: 1,
+        triangulo: new Triangulo(new THREE.Vector3(0.0,4.0,-5.0), // M
+                                 new THREE.Vector3(1.0,2.0,-5.0), // K
+                                 new THREE.Vector3(-1.0,2.0,-5.0)), // D
+
+        cor: new THREE.Vector3(1.0,0.0,0.0) // Vermelho
+    
+    },
+    //3
+    {
+        tipo: 1,
+        triangulo: new Triangulo(new THREE.Vector3(0.0,0.0,-5.0), // M
+                                 new THREE.Vector3(2.0,0.0,-5.0), // K
+                                 new THREE.Vector3(1.0,-2.0,-5.0)), // D
+
+        cor: new THREE.Vector3(1.0,0.0,0.0) // Vermelho
+    
+    },
+     //4
+     {
+        tipo: 1,
+        triangulo: new Triangulo(new THREE.Vector3(3.0,-2.0,-5.0), // M
+                                 new THREE.Vector3(1.0,-2.0,-5.0), // K
+                                 new THREE.Vector3(2.0,0.0,-5.0)), // D
+
+        cor: new THREE.Vector3(1.0,0.0,0.0) // Vermelho
+    
+    },
+    //5
+    {
+        tipo: 1,
+        triangulo: new Triangulo(new THREE.Vector3(0.0,0.0,-5.0), // M
+                                 new THREE.Vector3(-1.0,-2.0,-5.0),
+                                 new THREE.Vector3(-2.0,0.0,-5.0)), // K
+                                  // D
+
+        cor: new THREE.Vector3(1.0,0.0,0.0) // Vermelho
+    
+    },
+     //6
+     {
+        tipo: 1,
+        triangulo: new Triangulo(new THREE.Vector3(-3.0,-2.0,-5.0), // M
+                                new THREE.Vector3(-2.0,0.0,-5.0),                         
+                                new THREE.Vector3(-1.0,-2.0,-5.0)), // K // D
+
+        cor: new THREE.Vector3(1.0,0.0,0.0) // Vermelho
+    
+    },
+  
+
+];
 
 let triangulos = [
     //1
@@ -523,8 +753,9 @@ let bb8 = [
    
 ];
 
-
-//Render_esfera();
-//Render_triangulo();
-//RenderUmbrella(triangulos)
-Render_BB8(bb8);
+RenderCena(cena)
+// Render_esfera();
+// Render_triangulo(); 
+// Render_triangulo_eficiente();
+// RenderUmbrella(triangulos)
+// Render_BB8(bb8); 
