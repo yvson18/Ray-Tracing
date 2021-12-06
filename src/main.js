@@ -150,33 +150,31 @@ class TrianguloEficiente{
         this.C = C;
     }
     interseccionar(raio, interseccao){
-        let e = 0.0000001;
+        let e = 1e-8;
         let AB = this.B.clone().sub(this.A);
         let AC = this.C.clone().sub(this.A);
-        let h = raio.direcao.cross(AC);
-        let det = AB.dot(h);
+        let h = raio.direcao.clone().cross(AC);
+        let det = AB.clone().dot(h);
         if (det < e && det > -e){
-            console.log(det);
             return false;
         }
-        let invDet = 1.0/det;
-        let s = raio.origem.sub(this.A);
+        let invDet = 1/det;
+        let s = raio.origem.clone().sub(this.A);
         let u = s.dot(h) * invDet;
         if(u < 0.0 || u > 1.0){
             return false;
         }
         let q = s.cross(AB);
         let v = raio.direcao.dot(q) * invDet;
-        // if(v < 0.0 || u + v > 1.0){
-        //     return false;
-        // }
-        console.log('chegou')
-        let t = invDet * AC.dot(q);
+        if(v < 0 || u + v > 1){
+            return false;
+        }
+        let t = invDet * AC.clone().dot(q);
         interseccao.t = t;
 
         if(t > e){
             interseccao.posicao = raio.origem.clone().add(raio.direcao.clone().multiplyScalar(interseccao.t));
-            interseccao.normal = AB.cross(AC).normalize();
+            interseccao.normal = AC.cross(AB).normalize();
             return true;
         }else{
             return false;
@@ -753,9 +751,9 @@ let bb8 = [
    
 ];
 
-RenderCena(cena)
+// RenderCena(cena)
 // Render_esfera();
 // Render_triangulo(); 
-// Render_triangulo_eficiente();
+Render_triangulo_eficiente();
 // RenderUmbrella(triangulos)
 // Render_BB8(bb8); 
