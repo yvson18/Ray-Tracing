@@ -75,6 +75,7 @@ Isso foi feito utilizando as fórmulas deduzidas abaixo para **a** e **b** (coor
 
 De posse das coordenadas, utilizamos as restrições de **a** e **b** serem **números positivos** e **sua soma ser menor ou igual 1** para identificar se o raio intercepta o triângulo.
 
+Além desta implementação, também implementamos o algoritmo de Moller-Trumbore.
 ### Imagem do triângulo gerado por meio do algoritmo descrito
 
 
@@ -109,7 +110,6 @@ Ia = (0.2,0.2,0.2);
 n_phong = 28;
 
 ~~~
-
 
 <br>
 <p align = "center">
@@ -162,6 +162,40 @@ n_phong = 64;
 <b>Figura 6: BB-8 "simplificado"</b><p>
 </p>
 
+Por ultimo, segue o logotipo da mitsubishi. A imagem foi feita levando em consideração os seguintes dados que manipulam a iluminação:
+
+~~~Javascript
+// Luz
+
+cor_da_luz = (1.0,1.0,1.0)
+posicao_da_luz = (-2.50,2.75,1.0)
+
+// Configurações caso seja uma esfera
+
+ka = kd = (0.5,0.5,0.5)
+
+// Configurações caso seja um Triângulo
+
+ka = kd = (1.0,0.0,0.0)
+
+// Outras configurações
+
+ks = (1.0,1.0,1.0);
+Ia = (0.2,0.2,0.2);
+n_phong_triangulo = 10;
+n_phong_esfera = 64;
+
+~~~
+
+
+<br>
+<p align = "center">
+<img  style = "justify-content: center" src= "prints/mitsubishi.png" alt =   "drawing" width = "400" height = "400">
+</p>
+
+<p align = "center">
+<b>Figura 7: Mitsubishi</b><p>
+</p>
 ## Referências
 
 https://www.youtube.com/watch?v=w7bje9GvWEE&t=542s (**Ray plane intersection**)

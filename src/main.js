@@ -453,7 +453,7 @@ function RenderCena(objetos){
                         // Iluminação
                         // Termo ambiente
                         let ka = objetos[i].cor;
-                        let Ia =  new THREE.Vector3(1,1,1);
+                        let Ia =  new THREE.Vector3(0.2,0.2,0.2);
                         let tA = Ia.clone().multiply(ka);
         
                         // Termo difuso
@@ -751,9 +751,9 @@ let bb8 = [
    
 ];
 
-// RenderCena(cena)
+RenderCena(cena)
 // Render_esfera();
 // Render_triangulo(); 
-Render_triangulo_eficiente();
+// Render_triangulo_eficiente();
 // RenderUmbrella(triangulos)
 // Render_BB8(bb8); 
