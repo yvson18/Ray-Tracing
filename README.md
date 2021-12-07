@@ -61,8 +61,8 @@ Caso de o produto interno de **d** por **n** ser 0, implica-se que o plano que c
 ##### Etapa 2: Verificar se intersecção com o triângulo.
 
 Para identificar se intersecção está contida no triângulo foi utilizada coordenadas baricêntricas.
-Em primeiro plano, foi necessário dado a intersecção com o triângulo identificar pelo menos suas duas coordenadas baricêntricas em relação ao triângulo.
-Isso foi feito utilizando as fórmulas deduzidas abaixo para **a** e **b** (coordenadas) considerando o triângulo ABC e a intersecção **I** do raio.
+Em primeiro plano, foi necessário dado a intersecção com o triângulo identificar pelo menos  duas coordenadas baricêntricas em relação ao triângulo.
+Isso foi feito utilizando as fórmulas deduzidas abaixo para **a** e **b** (coordenadas), considerando o triângulo ABC e a intersecção **I** do raio.
 
 <br>
 <p align = "center">
@@ -76,6 +76,7 @@ Isso foi feito utilizando as fórmulas deduzidas abaixo para **a** e **b** (coor
 De posse das coordenadas, utilizamos as restrições de **a** e **b** serem **números positivos** e **sua soma ser menor ou igual 1** para identificar se o raio intercepta o triângulo.
 
 Além desta implementação, também implementamos o algoritmo de Moller-Trumbore.
+
 ### Imagem do triângulo gerado por meio do algoritmo descrito
 
 
@@ -196,7 +197,12 @@ n_phong_esfera = 64;
 <p align = "center">
 <b>Figura 7: Mitsubishi</b><p>
 </p>
+
 ## Referências
 
 https://www.youtube.com/watch?v=w7bje9GvWEE&t=542s (**Ray plane intersection**)
 https://www.youtube.com/watch?v=EZXz-uPyCyA (**Math for Game Developers - Ray Triangle Intersection**)
+
+## link do github
+
+https://github.com/yvson18/Ray-Tracing
